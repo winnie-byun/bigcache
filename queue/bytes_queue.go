@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"log"
 	"time"
+	"strconv"
 )
 
 const (
@@ -69,16 +70,17 @@ func (q *BytesQueue) Reset() {
 
 // Push copies entry at the end of queue and moves tail pointer. Allocates more space if needed.
 // Returns index for pushed data or error if maximum size queue limit is reached.
-func (q *BytesQueue) Push(data []byte) (int, error) {
+func (q *BytesQueue) Push(data []byte) (int, error, string) {
 	dataLen := len(data)
+	var logs string
 
 	if q.availableSpaceAfterTail() < dataLen+headerEntrySize {
 		if q.availableSpaceBeforeHead() >= dataLen+headerEntrySize {
 			q.tail = leftMarginIndex
 		} else if q.capacity+headerEntrySize+dataLen >= q.maxCapacity && q.maxCapacity > 0 {
-			return -1, &queueError{"Full queue. Maximum size limit reached."}
+			return -1, &queueError{"Full queue. Maximum size limit reached."}, "[JOOWON] Full queue. Maximum size limit reached.\n"
 		} else {
-			q.allocateAdditionalMemory(dataLen + headerEntrySize)
+			logs = q.allocateAdditionalMemory(dataLen + headerEntrySize)
 		}
 	}
 
@@ -86,18 +88,24 @@ func (q *BytesQueue) Push(data []byte) (int, error) {
 
 	q.push(data, dataLen)
 
-	return index, nil
+	return index, nil, logs
 }
 
-func (q *BytesQueue) allocateAdditionalMemory(minimum int) {
+func (q *BytesQueue) allocateAdditionalMemory(minimum int) string {
+	logs := ""
 	start := time.Now()
 	if q.capacity < minimum {
 		q.capacity += minimum
 	}
+
+	logs += " [JOOWON] [new memory allocation] old : " + strconv.Itoa(q.capacity)
 	q.capacity = q.capacity * 2
 	if q.capacity > q.maxCapacity && q.maxCapacity > 0 {
 		q.capacity = q.maxCapacity
 	}
+
+	logs += "new : " + strconv.Itoa(q.capacity)
+	logs += "max : " + strconv.Itoa(q.maxCapacity)
 
 	oldArray := q.array
 	q.array = make([]byte, q.capacity)
@@ -116,6 +124,8 @@ func (q *BytesQueue) allocateAdditionalMemory(minimum int) {
 	if q.verbose {
 		log.Printf("Allocated new queue in %s; Capacity: %d \n", time.Since(start), q.capacity)
 	}
+
+	return logs + "\n"
 }
 
 func (q *BytesQueue) push(data []byte, len int) {

@@ -2,6 +2,7 @@ package bigcache
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -37,14 +38,14 @@ const (
 )
 
 // NewBigCache initialize new instance of BigCache
-func NewBigCache(config Config) (*BigCache, error) {
+func NewBigCache(config Config) (*BigCache, error, string) {
 	return newBigCache(config, &systemClock{})
 }
 
-func newBigCache(config Config, clock clock) (*BigCache, error) {
+func newBigCache(config Config, clock clock) (*BigCache, error, string) {
 
 	if !isPowerOfTwo(config.Shards) {
-		return nil, fmt.Errorf("Shards number must be power of two")
+		return nil, fmt.Errorf("Shards number must be power of two"), " [Joowon] Shards number must be power of two\n"
 	}
 
 	if config.Hasher == nil {
@@ -62,6 +63,9 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 		close:        make(chan struct{}),
 	}
 
+	logs := " [JOOWON] shards : " + strconv.Itoa(config.Shards)
+	logs += " maxShardSize : " + strconv.Itoa(config.maximumShardSize()) + "\n"
+
 	var onRemove func(wrappedEntry []byte, reason RemoveReason)
 	if config.OnRemove != nil {
 		onRemove = cache.providedOnRemove
@@ -72,7 +76,9 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 	}
 
 	for i := 0; i < config.Shards; i++ {
-		cache.shards[i] = initNewShard(config, onRemove, clock)
+		var l string
+		cache.shards[i], l = initNewShard(config, onRemove, clock)
+		logs += l
 	}
 
 	if config.CleanWindow > 0 {
@@ -90,7 +96,7 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 		}()
 	}
 
-	return cache, nil
+	return cache, nil, logs
 }
 
 // Close is used to signal a shutdown of the cache when you are done with it.

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"strconv"
 
-	"github.com/allegro/bigcache/queue"
+	"github.com/winnie-byun/bigcache/queue"
 )
 
 type onRemoveCallback func(wrappedEntry []byte, reason RemoveReason)
@@ -73,7 +74,9 @@ func (s *cacheShard) set(key string, hashedKey uint64, entry []byte) error {
 	w := wrapEntry(currentTimestamp, hashedKey, key, entry, &s.entryBuffer)
 
 	for {
-		if index, err := s.entries.Push(w); err == nil {
+		index, err, l := s.entries.Push(w)
+		s.logger.Printf(l)
+		if err == nil {
 			s.hashmap[hashedKey] = uint32(index)
 			s.lock.Unlock()
 			return nil
@@ -244,16 +247,16 @@ func (s *cacheShard) collision() {
 	atomic.AddInt64(&s.stats.Collisions, 1)
 }
 
-func initNewShard(config Config, callback onRemoveCallback, clock clock) *cacheShard {
+func initNewShard(config Config, callback onRemoveCallback, clock clock) (*cacheShard, string) {
+	log := "initicial entrie capacity : " + strconv.Itoa(config.initialShardSize()*config.MaxEntrySize) + ""
 	return &cacheShard{
 		hashmap:     make(map[uint64]uint32, config.initialShardSize()),
 		entries:     *queue.NewBytesQueue(config.initialShardSize()*config.MaxEntrySize, config.maximumShardSize(), config.Verbose),
 		entryBuffer: make([]byte, config.MaxEntrySize+headersSizeInBytes),
 		onRemove:    callback,
-
-		isVerbose:  config.Verbose,
-		logger:     newLogger(config.Logger),
-		clock:      clock,
-		lifeWindow: uint64(config.LifeWindow.Seconds()),
-	}
+		isVerbose:   config.Verbose,
+		logger:      newLogger(config.Logger),
+		clock:       clock,
+		lifeWindow:  uint64(config.LifeWindow.Seconds()),
+	}, log
 }

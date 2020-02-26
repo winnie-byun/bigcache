@@ -6,8 +6,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/allegro/bigcache"
 	"github.com/coocood/freecache"
+	"github.com/winnie-byun/bigcache"
 )
 
 func gcPause() time.Duration {
@@ -34,7 +34,7 @@ func main() {
 		Verbose:            true,
 	}
 
-	bigcache, _ := bigcache.NewBigCache(config)
+	bigcache, _,  _ := bigcache.NewBigCache(config)
 	for i := 0; i < entries; i++ {
 		key, val := generateKeyValue(i, valueSize)
 		bigcache.Set(key, val)

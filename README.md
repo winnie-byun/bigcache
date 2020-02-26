@@ -9,7 +9,7 @@ therefore entries (de)serialization in front of the cache will be needed in most
 ### Simple initialization
 
 ```go
-import "github.com/allegro/bigcache"
+import "github.com/winnie-byun/bigcache"
 
 cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * time.Minute))
 
@@ -28,7 +28,7 @@ allocation can be avoided in that way.
 import (
 	"log"
 
-	"github.com/allegro/bigcache"
+	"github.com/winnie-byun/bigcache"
 )
 
 config := bigcache.Config {

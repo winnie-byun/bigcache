@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/allegro/bigcache"
 	"github.com/coocood/freecache"
+	"github.com/winnie-byun/bigcache"
 )
 
 const maxEntrySize = 256
