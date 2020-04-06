@@ -113,8 +113,8 @@ func (c *BigCache) Get(key string) ([]byte, error) {
 // Set saves entry under the key
 func (c *BigCache) Set(key string, entry []byte) error {
 	hashedKey := c.hash.Sum64(key)
-	shard := c.getShard(hashedKey)
-	return shard.set(key, hashedKey, entry)
+	idx := hashedKey&c.shardMask
+	return c.shards[idx].set(key, hashedKey, entry)
 }
 
 // Delete removes the key
