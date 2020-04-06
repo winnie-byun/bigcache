@@ -13,7 +13,7 @@ const (
 // It keeps entries on heap but omits GC for them. To achieve that, operations take place on byte arrays,
 // therefore entries (de)serialization in front of the cache will be needed in most use cases.
 type BigCache struct {
-	shards       []*cacheShard
+	shards       []cacheShard
 	lifeWindow   uint64
 	clock        clock
 	hash         Hasher
@@ -52,7 +52,7 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 	}
 
 	cache := &BigCache{
-		shards:       make([]*cacheShard, config.Shards),
+		shards:       make([]cacheShard, config.Shards),
 		lifeWindow:   uint64(config.LifeWindow.Seconds()),
 		clock:        clock,
 		hash:         config.Hasher,
@@ -72,7 +72,7 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 	}
 
 	for i := 0; i < config.Shards; i++ {
-		cache.shards[i] = initNewShard(config, onRemove, clock)
+		cache.shards[i] = *initNewShard(config, onRemove, clock)
 	}
 
 	if config.CleanWindow > 0 {
@@ -184,7 +184,7 @@ func (c *BigCache) cleanUp(currentTimestamp uint64) {
 	}
 }
 
-func (c *BigCache) getShard(hashedKey uint64) (shard *cacheShard) {
+func (c *BigCache) getShard(hashedKey uint64) (shard cacheShard) {
 	return c.shards[hashedKey&c.shardMask]
 }
 

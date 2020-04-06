@@ -2,10 +2,11 @@ package bigcache
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"sync/atomic"
 
-	"github.com/allegro/bigcache/queue"
+	"github.com/winnie-byun/bigcache/queue"
 )
 
 type onRemoveCallback func(wrappedEntry []byte, reason RemoveReason)

@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/allegro/bigcache"
+	"github.com/winnie-byun/bigcache"
 	"github.com/coocood/freecache"
 )
 

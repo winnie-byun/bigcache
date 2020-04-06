@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/allegro/bigcache"
+	"github.com/winnie-byune/bigcache"
 )
 
 const (
