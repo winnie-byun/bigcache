@@ -2,7 +2,6 @@ package bigcache
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 
